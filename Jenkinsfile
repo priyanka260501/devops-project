@@ -9,6 +9,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Checking out code for environment: ${ENV}"
+                checkout scm
             }
         }
 
@@ -26,10 +27,11 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to Kubernetes') {
             steps {
-                echo "Deploying to ${ENV} environment..."
-                sh 'echo "Deployment complete!"'
+                echo "Deploying to ${ENV} namespace in Kubernetes..."
+                sh 'kubectl apply -f kubernetes/${ENV}/'
+                sh 'kubectl get pods -n ${ENV}'
             }
         }
     }
@@ -37,6 +39,7 @@ pipeline {
     post {
         success {
             echo "✅ Pipeline succeeded for ${ENV}!"
+            sh 'kubectl get services -n ${ENV}'
         }
         failure {
             echo "❌ Pipeline failed for ${ENV}!"
